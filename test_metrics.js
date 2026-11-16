@@ -1,0 +1,15 @@
+const fs = require('node:fs');
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+const script = fs.readFileSync(__dirname + '/docs/script.js', 'utf8');
+const start = script.indexOf('function computeMetrics(');
+const end = script.indexOf('function formatKpiContext(', start);
+const context = {}; vm.createContext(context); vm.runInContext(script.slice(start,end),context);
+const data = JSON.parse(fs.readFileSync(__dirname + '/docs/data.json'));
+const actual = context.computeMetrics(data);
+assert.equal(data.length,104);
+assert.ok(Math.abs(actual.spend - 3827129.31)<1e-6);
+assert.ok(Math.abs(actual.revenue - 12220508.86)<1e-6);
+assert.ok(Math.abs(actual.overallROI - 219.31267198285477)<1e-6);
+assert.equal(context.computeMetrics([]).overallROI,0);
+console.log('PASS: weighted totals and empty data');
